@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.css" />
+    <Content Include="img\circle.png" />
     <Content Include="index.html" />
     <Content Include="web.config" />
   </ItemGroup>

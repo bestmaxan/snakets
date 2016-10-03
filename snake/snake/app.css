@@ -5,3 +5,23 @@
 span {
     font-style: italic;
 }
+
+#content {
+    width: 500px;
+    border: 1px solid black;
+    height: 500px;
+}
+
+.cell {
+    width: 4.599%;
+    height: 4.599%;
+    border: 0.1px dotted grey;
+    background-color: rgb(55, 71, 79);
+    display: inline-block;
+    vertical-align: top;
+}
+
+.frt {
+    background: url("/img/circle.png") 45% no-repeat rgb(55, 71, 79);
+    background-size:72%;
+}
