@@ -21,7 +21,16 @@ span {
     vertical-align: top;
 }
 
-.frt {
+.wall {
+    background-color: yellow;
+}
+
+.sBd {
     background: url("/img/circle.png") 45% no-repeat rgb(55, 71, 79);
+    background-size:72%;
+}
+
+.frt {
+    background: url("/img/green.png") 45% no-repeat rgb(55, 71, 79);
     background-size:72%;
 }
