@@ -46,7 +46,14 @@ var Sn;
                 sn.HandleKey(e.keyCode);
             };
             var goSnake = setInterval(function () {
-                if (sn.IsHitTail() || sn.IsHitWall()) {
+                if (sn.Eat(food)) {
+                    food = foodCr.Create();
+                    food.Draw();
+                }
+                try {
+                    sn.Move();
+                }
+                catch (e) {
                     clearInterval(goSnake);
                     food.Clear();
                     sn.Clear();
@@ -63,20 +70,25 @@ var Sn;
                     sm3.Draw();
                     sm4.Draw();
                 }
-                else {
-                    if (sn.Eat(food)) {
-                        food = foodCr.Create();
-                        food.Draw();
-                    }
-                    sn.Move();
-                }
-            }, 150);
+            }, 200);
         };
         return Program;
     }());
     Sn.Program = Program;
     var Point = (function () {
         function Point(_x, _y, _sym) {
+            this.addClass = function (cellInd, cls) {
+                var el = element.getElementsByClassName("cell")[cellInd];
+                if (el != undefined) {
+                    el.className += cls;
+                }
+            };
+            this.removeClass = function (cellInd, cls) {
+                var el = element.getElementsByClassName("cell")[cellInd];
+                if (el != undefined) {
+                    el.className = el.className.replace(cls, "");
+                }
+            };
             if (typeof _x === "object") {
                 this.x = _x.x;
                 this.y = _x.y;
@@ -135,11 +147,10 @@ var Sn;
             return cls;
         };
         Point.prototype.Draw = function () {
-            element.getElementsByClassName("cell")[this.convertCoordinates(this.x, this.y)].className += this.cls;
+            this.addClass(this.convertCoordinates(this.x, this.y), this.cls);
         };
         Point.prototype.Clear = function (clss) {
-            element.getElementsByClassName("cell")[this.convertCoordinates(this.x, this.y)].className =
-                element.getElementsByClassName("cell")[this.convertCoordinates(this.x, this.y)].className.replace(clss || this.cls, "");
+            this.removeClass(this.convertCoordinates(this.x, this.y), clss || this.cls);
         };
         Point.prototype.convertCoordinates = function (x, y) {
             return 20 * (y - 1) + (x - 1);
@@ -170,8 +181,11 @@ var Sn;
         }
         Snake.prototype.Move = function () {
             var tail = this.pList[0];
-            this.pList.splice(0, 1);
             var head = this.GetNextPoint();
+            if (this.IsHitTail(head) || this.IsHitWall(head)) {
+                throw "crash";
+            }
+            this.pList.splice(0, 1);
             this.pList.push(head);
             tail.Clear();
             head.Draw();
@@ -207,17 +221,15 @@ var Sn;
             }
             return false;
         };
-        Snake.prototype.IsHitTail = function () {
-            var head = this.pList[this.pList.length - 1];
+        Snake.prototype.IsHitTail = function (head) {
             for (var i = 0; i < this.pList.length - 2; i++) {
                 if (head.IsHit(this.pList[i]))
                     return true;
             }
             return false;
         };
-        Snake.prototype.IsHitWall = function () {
-            var head = this.pList[this.pList.length - 1];
-            if (head.x > 19 || head.y > 19 || head.x < 2 || head.y < 2)
+        Snake.prototype.IsHitWall = function (head) {
+            if (head.x > 20 || head.y > 20 || head.x < 1 || head.y < 1)
                 return true;
             return false;
         };

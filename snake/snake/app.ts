@@ -2,8 +2,6 @@
     var el = document.getElementById('content');
     var s = new Sn.Program(el);
     s.init();
-
-    
 };
 
 namespace Sn {
@@ -48,7 +46,13 @@ namespace Sn {
             }
 
             var goSnake = setInterval(function () {
-                if (sn.IsHitTail() || sn.IsHitWall()) {
+                if (sn.Eat(food)) {
+                    food = foodCr.Create();
+                    food.Draw();
+                }
+                try {
+                    sn.Move();
+                } catch (e) {
                     clearInterval(goSnake);
                     food.Clear();
                     sn.Clear();
@@ -64,15 +68,11 @@ namespace Sn {
                     sm2.Draw();
                     sm3.Draw();
                     sm4.Draw();
-                } else {
-                    if (sn.Eat(food)) {
-                        food = foodCr.Create();
-                        food.Draw();
-                    }
-                    sn.Move();
                 }
-            }, 150);
+
+            }, 200);
         }
+
     }
 
     class Point {
@@ -83,7 +83,7 @@ namespace Sn {
 
         constructor(_x: Point);
         constructor(_x: number, _y: number, _sym: DrawElement);
-                
+
         constructor(_x: number | Point, _y?: number, _sym?: DrawElement) {
             if (typeof _x === "object") {
                 this.x = _x.x;
@@ -120,7 +120,7 @@ namespace Sn {
             return (this.x == p.x && this.y == p.y);
         }
 
-        private getCssClass(sym: DrawElement):string {
+        private getCssClass(sym: DrawElement): string {
             let cls: string = "";
             switch (sym) {
                 case DrawElement.head:
@@ -139,16 +139,28 @@ namespace Sn {
             return cls;
         }
 
+        private addClass = function (cellInd: number, cls: string) {
+            let el = element.getElementsByClassName("cell")[cellInd];
+            if (el != undefined) {
+                el.className += cls;
+            }
+        }
+
+        private removeClass = function (cellInd: number, cls: string) {
+            let el = element.getElementsByClassName("cell")[cellInd];
+            if (el != undefined) {
+                el.className = el.className.replace(cls, "");
+            }
+        }
+
         Draw() {
-            element.getElementsByClassName("cell")[this.convertCoordinates(this.x, this.y)].className += this.cls;
+            this.addClass(this.convertCoordinates(this.x, this.y), this.cls);
         }
 
         Clear();
         Clear(clss: string);
-        Clear(clss?: string)
-        {
-            element.getElementsByClassName("cell")[this.convertCoordinates(this.x, this.y)].className =
-                element.getElementsByClassName("cell")[this.convertCoordinates(this.x, this.y)].className.replace(clss||this.cls,"");
+        Clear(clss?: string) {
+            this.removeClass(this.convertCoordinates(this.x, this.y), clss || this.cls);
         }
 
         private convertCoordinates(x: number, y: number): number {
@@ -184,17 +196,20 @@ namespace Sn {
         }
 
         Move() {
-            let tail = this.pList[0];
-            this.pList.splice(0, 1);
+            let tail = this.pList[0];            
             let head = this.GetNextPoint();
-            this.pList.push(head);
 
+            if (this.IsHitTail(head) || this.IsHitWall(head)) {
+                throw "crash";
+            }
+            this.pList.splice(0, 1);
+            this.pList.push(head);
             tail.Clear();
             head.Draw();
         }
 
         GetNextPoint(): Point {
-            let head = this.pList[this.pList.length-1];
+            let head = this.pList[this.pList.length - 1];
             let nPoint = new Point(head);
             nPoint.Move(1, this.direction);
             return nPoint;
@@ -214,7 +229,7 @@ namespace Sn {
 
         Eat(food: Point): boolean {
             let head = this.GetNextPoint();
-            if (head.IsHit(food)) {                
+            if (head.IsHit(food)) {
                 food.sym = head.sym;
                 food.Clear(" frt");
                 food.Draw();
@@ -224,8 +239,7 @@ namespace Sn {
             return false;
         }
 
-        IsHitTail(): boolean {
-            let head = this.pList[this.pList.length - 1];
+        IsHitTail(head: Point): boolean {
             for (let i = 0; i < this.pList.length - 2; i++) {
                 if (head.IsHit(this.pList[i]))
                     return true;
@@ -233,9 +247,8 @@ namespace Sn {
             return false;
         }
 
-        IsHitWall(): boolean {
-            let head = this.pList[this.pList.length - 1];
-            if (head.x > 19 || head.y > 19 || head.x < 2 || head.y < 2)
+        IsHitWall(head: Point): boolean {
+            if (head.x > 20 || head.y > 20 || head.x < 1 || head.y < 1)
                 return true;
             return false;
         }
@@ -253,7 +266,7 @@ namespace Sn {
             for (var x = xLeft; x <= xRight; x++) {
                 this.pList.push(new Point(x, y, DrawElement.wall));
             }
-            
+
         }
     }
 
@@ -263,7 +276,7 @@ namespace Sn {
             for (var y = yTop; y <= yBottom; y++) {
                 this.pList.push(new Point(x, y, DrawElement.wall));
             }
-        }        
+        }
     }
 
     class FoodCreator {
